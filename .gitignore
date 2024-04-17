@@ -34,5 +34,7 @@ build/
 
 ### Database Voume ###
 user-service/mysql
+task-service/mysql
+submission-service/mysql
 
 
