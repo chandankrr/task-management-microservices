@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "task-service", url = "http://localhost:8081")
+@FeignClient(name = "task-service", url = "http://localhost:8082")
 public interface TaskService {
 
     // TODO: change this method according to made change in task controller
