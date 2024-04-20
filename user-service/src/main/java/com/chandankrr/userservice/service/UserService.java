@@ -1,12 +1,12 @@
 package com.chandankrr.userservice.service;
 
-import com.chandankrr.userservice.dto.UserResponse;
+import com.chandankrr.userservice.dto.UserDto;
 
 import java.util.List;
 
 public interface UserService {
 
-    public UserResponse getUserProfile(String jwt);
+    UserDto getUserProfile(String jwt);
 
-    public List<UserResponse> getAllUsers();
+    List<UserDto> getAllUsers();
 }
