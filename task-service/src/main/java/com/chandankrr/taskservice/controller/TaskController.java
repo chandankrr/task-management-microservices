@@ -1,13 +1,14 @@
 package com.chandankrr.taskservice.controller;
 
+import com.chandankrr.taskservice.dto.TaskDto;
 import com.chandankrr.taskservice.dto.UserDto;
 import com.chandankrr.taskservice.entity.Task;
 import com.chandankrr.taskservice.entity.TaskStatus;
 import com.chandankrr.taskservice.service.TaskService;
 import com.chandankrr.taskservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,74 +20,68 @@ public class TaskController {
 
     private final TaskService taskService;
     private final UserService userService;
-
-    // TODO: convent all used task entity in dto and also the request and response used in controller
-
-    @PostMapping()
-    public ResponseEntity<Task> createTask(@RequestBody Task task,
-                                           @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getUserProfile(jwt);
-        Task createdTask = taskService.createTask(task, user.getRole());
-
-        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
-    }
+    private final ModelMapper modelMapper;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id,
+    @ResponseStatus(HttpStatus.OK)
+    public TaskDto getTaskById(@PathVariable Long id,
                                             @RequestHeader("Authorization") String jwt) throws Exception {
         userService.getUserProfile(jwt);
         Task task = taskService.getTaskById(id);
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return modelMapper.map(task, TaskDto.class);
+    }
+
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public TaskDto createTask(@RequestBody Task task,
+                              @RequestHeader("Authorization") String jwt) throws Exception {
+        UserDto user = userService.getUserProfile(jwt);
+        return taskService.createTask(task, user.getRole());
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Task>> getAssignedUsersTask(@RequestParam(required = false) TaskStatus status,
+    @ResponseStatus(HttpStatus.OK)
+    public List<TaskDto> getAssignedUsersTask(@RequestParam(required = false) TaskStatus status,
                                                      @RequestHeader("Authorization") String jwt) {
         UserDto user = userService.getUserProfile(jwt);
-        List<Task> assignedUsersTasks = taskService.assignedUsersTask(user.getId(), status);
-
-        return new ResponseEntity<>(assignedUsersTasks, HttpStatus.OK);
+        return taskService.assignedUsersTask(user.getId(), status);
     }
 
     @GetMapping()
-    public ResponseEntity<List<Task>> getAllTask(@RequestParam(required = false) TaskStatus status,
+    @ResponseStatus(HttpStatus.OK)
+    public List<TaskDto> getAllTask(@RequestParam(required = false) TaskStatus status,
                                                            @RequestHeader("Authorization") String jwt) {
         userService.getUserProfile(jwt);
-        List<Task> allTasks = taskService.getAllTasks(status);
-
-        return new ResponseEntity<>(allTasks, HttpStatus.OK);
+        return taskService.getAllTasks(status);
     }
 
     @PutMapping("/{id}/user/{userid}/assigned")
-    public ResponseEntity<Task> assignedTaskToUser(@PathVariable Long id,
+    @ResponseStatus(HttpStatus.OK)
+    public TaskDto assignedTaskToUser(@PathVariable Long id,
                                                    @PathVariable Long userid,
                                                    @RequestHeader("Authorization") String jwt) throws Exception {
         userService.getUserProfile(jwt);
-        Task task = taskService.assignedToUser(userid, id);
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return taskService.assignedToUser(userid, id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id,
+    @ResponseStatus(HttpStatus.OK)
+    public TaskDto updateTask(@PathVariable Long id,
                                            @RequestBody Task req,
                                            @RequestHeader("Authorization") String jwt) throws Exception {
         UserDto user = userService.getUserProfile(jwt);
-        Task task = taskService.updateTask(id, req, user.getId());
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return taskService.updateTask(id, req, user.getId());
     }
 
     @PutMapping("/{id}/complete")
-    public ResponseEntity<Task> completeTask(@PathVariable Long id) throws Exception {
-        Task task = taskService.completeTask(id);
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public TaskDto completeTask(@PathVariable Long id) throws Exception {
+        return taskService.completeTask(id);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) throws Exception {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTask(@PathVariable Long id) throws Exception {
         taskService.deleteTask(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

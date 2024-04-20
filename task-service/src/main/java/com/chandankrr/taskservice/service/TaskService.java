@@ -1,5 +1,6 @@
 package com.chandankrr.taskservice.service;
 
+import com.chandankrr.taskservice.dto.TaskDto;
 import com.chandankrr.taskservice.entity.Task;
 import com.chandankrr.taskservice.entity.TaskStatus;
 
@@ -7,19 +8,19 @@ import java.util.List;
 
 public interface TaskService {
 
-    Task createTask(Task task, String requesterRole) throws Exception;
-
     Task getTaskById(Long id) throws Exception;
 
-    List<Task> getAllTasks(TaskStatus status);
+    TaskDto createTask(Task task, String requesterRole) throws Exception;
 
-    Task updateTask(Long id, Task updatedTask, Long userId) throws Exception;
+    List<TaskDto> getAllTasks(TaskStatus status);
+
+    TaskDto updateTask(Long id, Task updatedTask, Long userId) throws Exception;
 
     void deleteTask(Long id) throws Exception;
 
-    Task assignedToUser(Long userId, Long taskId) throws Exception;
+    TaskDto assignedToUser(Long userId, Long taskId) throws Exception;
 
-    List<Task> assignedUsersTask(Long userId, TaskStatus status);
+    List<TaskDto> assignedUsersTask(Long userId, TaskStatus status);
 
-    Task completeTask(Long taskId) throws Exception;
+    TaskDto completeTask(Long taskId) throws Exception;
 }

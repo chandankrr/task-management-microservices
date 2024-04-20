@@ -1,10 +1,12 @@
 package com.chandankrr.taskservice.service.impl;
 
+import com.chandankrr.taskservice.dto.TaskDto;
 import com.chandankrr.taskservice.entity.Task;
 import com.chandankrr.taskservice.entity.TaskStatus;
 import com.chandankrr.taskservice.repository.TaskRepository;
 import com.chandankrr.taskservice.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,18 +17,7 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
-
-    @Override
-    public Task createTask(Task task, String requesterRole) throws Exception {
-        if (!requesterRole.equals("ROLE_ADMIN")) {
-            throw new Exception("Only admin can create task");
-        }
-
-        task.setStatus(TaskStatus.PENDING);
-        task.setCreatedAt(LocalDateTime.now());
-
-        return taskRepository.save(task);
-    }
+    private final ModelMapper modelMapper;
 
     @Override
     public Task getTaskById(Long id) throws Exception {
@@ -34,16 +25,29 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> getAllTasks(TaskStatus status) {
+    public TaskDto createTask(Task task, String requesterRole) throws Exception {
+        if (!requesterRole.equals("ROLE_ADMIN")) {
+            throw new Exception("Only admin can create task");
+        }
+
+        task.setStatus(TaskStatus.PENDING);
+        task.setCreatedAt(LocalDateTime.now());
+
+        Task createdTask = taskRepository.save(task);
+        return modelMapper.map(createdTask, TaskDto.class);
+    }
+
+    @Override
+    public List<TaskDto> getAllTasks(TaskStatus status) {
         List<Task> allTask = taskRepository.findAll();
 
         return allTask.stream().filter(
                 task -> status == null || task.getStatus().name().equalsIgnoreCase(status.toString())
-        ).toList();
+        ).map(task -> modelMapper.map(task, TaskDto.class)).toList();
     }
 
     @Override
-    public Task updateTask(Long id, Task updatedTask, Long userId) throws Exception {
+    public TaskDto updateTask(Long id, Task updatedTask, Long userId) throws Exception {
         Task existingTask = getTaskById(id);
 
         if (updatedTask.getTitle() != null) {
@@ -66,7 +70,8 @@ public class TaskServiceImpl implements TaskService {
             existingTask.setDeadLine(updatedTask.getDeadLine());
         }
 
-        return taskRepository.save(existingTask);
+        Task saveTask = taskRepository.save(existingTask);
+        return modelMapper.map(saveTask, TaskDto.class);
     }
 
     @Override
@@ -77,28 +82,30 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task assignedToUser(Long userId, Long taskId) throws Exception {
+    public TaskDto assignedToUser(Long userId, Long taskId) throws Exception {
         Task task = getTaskById(taskId);
         task.setAssignedUserId(userId);
         task.setStatus(TaskStatus.ASSIGNED);
 
-        return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+        return modelMapper.map(savedTask, TaskDto.class);
     }
 
     @Override
-    public List<Task> assignedUsersTask(Long userId, TaskStatus status) {
+    public List<TaskDto> assignedUsersTask(Long userId, TaskStatus status) {
         List<Task> allTask = taskRepository.findByAssignedUserId(userId);
 
         return allTask.stream().filter(
                 task -> status == null || task.getStatus().name().equalsIgnoreCase(status.toString())
-        ).toList();
+        ).map(task -> modelMapper.map(task, TaskDto.class)).toList();
     }
 
     @Override
-    public Task completeTask(Long taskId) throws Exception {
+    public TaskDto completeTask(Long taskId) throws Exception {
         Task task = getTaskById(taskId);
         task.setStatus(TaskStatus.DONE);
 
-        return taskRepository.save(task);
+        Task saveTask = taskRepository.save(task);
+        return modelMapper.map(saveTask, TaskDto.class);
     }
 }
