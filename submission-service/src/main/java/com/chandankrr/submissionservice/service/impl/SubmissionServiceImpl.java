@@ -6,10 +6,9 @@ import com.chandankrr.submissionservice.entity.Submission;
 import com.chandankrr.submissionservice.repository.SubmissionRepository;
 import com.chandankrr.submissionservice.service.SubmissionService;
 import com.chandankrr.submissionservice.service.TaskService;
+import com.chandankrr.submissionservice.exception.SubmissionNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,15 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SubmissionServiceImpl implements SubmissionService {
 
-    private static final Logger log = LoggerFactory.getLogger(SubmissionServiceImpl.class);
     private final SubmissionRepository submissionRepository;
     private final TaskService taskService;
     private final ModelMapper modelMapper;
 
     @Override
-    public Submission getTaskSubmissionById(Long submissionId) throws Exception {
+    public Submission getTaskSubmissionById(Long submissionId) throws SubmissionNotFoundException {
         return submissionRepository.findById(submissionId).orElseThrow(() ->
-                new Exception("Task submission not found with id: " + submissionId));
+                new SubmissionNotFoundException("Task submission not found with id: " + submissionId));
     }
 
     @Override
@@ -45,7 +43,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             Submission savedSubmission = submissionRepository.save(submission);
             return modelMapper.map(savedSubmission, SubmissionDto.class);
         }
-        throw new Exception("Task not found with id: " + taskId);
+        throw new SubmissionNotFoundException("Task not found with id: " + taskId);
     }
 
     @Override

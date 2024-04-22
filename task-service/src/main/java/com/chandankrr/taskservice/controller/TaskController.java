@@ -4,6 +4,8 @@ import com.chandankrr.taskservice.dto.TaskDto;
 import com.chandankrr.taskservice.dto.UserDto;
 import com.chandankrr.taskservice.entity.Task;
 import com.chandankrr.taskservice.entity.TaskStatus;
+import com.chandankrr.taskservice.exception.TaskNotFoundException;
+import com.chandankrr.taskservice.exception.UnauthorizedAccessException;
 import com.chandankrr.taskservice.service.TaskService;
 import com.chandankrr.taskservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,7 @@ public class TaskController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TaskDto getTaskById(@PathVariable Long id,
-                                            @RequestHeader("Authorization") String jwt) throws Exception {
+                                            @RequestHeader("Authorization") String jwt) throws TaskNotFoundException {
         userService.getUserProfile(jwt);
         Task task = taskService.getTaskById(id);
         return modelMapper.map(task, TaskDto.class);
@@ -34,7 +36,7 @@ public class TaskController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public TaskDto createTask(@RequestBody Task task,
-                              @RequestHeader("Authorization") String jwt) throws Exception {
+                              @RequestHeader("Authorization") String jwt) throws UnauthorizedAccessException {
         UserDto user = userService.getUserProfile(jwt);
         return taskService.createTask(task, user.getRole());
     }
@@ -59,7 +61,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public TaskDto assignedTaskToUser(@PathVariable Long id,
                                                    @PathVariable Long userid,
-                                                   @RequestHeader("Authorization") String jwt) throws Exception {
+                                                   @RequestHeader("Authorization") String jwt) throws TaskNotFoundException {
         userService.getUserProfile(jwt);
         return taskService.assignedToUser(userid, id);
     }
@@ -68,20 +70,20 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public TaskDto updateTask(@PathVariable Long id,
                                            @RequestBody Task req,
-                                           @RequestHeader("Authorization") String jwt) throws Exception {
+                                           @RequestHeader("Authorization") String jwt) throws TaskNotFoundException {
         UserDto user = userService.getUserProfile(jwt);
         return taskService.updateTask(id, req, user.getId());
     }
 
     @PutMapping("/{id}/complete")
     @ResponseStatus(HttpStatus.OK)
-    public TaskDto completeTask(@PathVariable Long id) throws Exception {
+    public TaskDto completeTask(@PathVariable Long id) throws TaskNotFoundException {
         return taskService.completeTask(id);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(@PathVariable Long id) throws Exception {
+    public void deleteTask(@PathVariable Long id) throws TaskNotFoundException {
         taskService.deleteTask(id);
     }
 }

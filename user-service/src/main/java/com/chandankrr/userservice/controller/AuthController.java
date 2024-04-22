@@ -4,11 +4,13 @@ import com.chandankrr.userservice.config.JwtProvider;
 import com.chandankrr.userservice.dto.AuthResponse;
 import com.chandankrr.userservice.dto.LoginRequest;
 import com.chandankrr.userservice.entity.User;
+import com.chandankrr.userservice.exception.EmailAlreadyUsedException;
+import com.chandankrr.userservice.exception.InvalidCredentialsException;
+import com.chandankrr.userservice.exception.UserNotFoundException;
 import com.chandankrr.userservice.repository.UserRepository;
 import com.chandankrr.userservice.service.CustomerUserServiceImplementation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse createUserHandler(@RequestBody User user) throws Exception {
+    public AuthResponse createUserHandler(@RequestBody User user) throws EmailAlreadyUsedException {
         String email = user.getEmail();
         String password = user.getPassword();
         String fullName = user.getFullName();
@@ -36,7 +38,7 @@ public class AuthController {
         User isEmailExist = userRepository.findByEmail(email);
 
         if (isEmailExist != null) {
-            throw new Exception("Email is already used with another account");
+            throw new EmailAlreadyUsedException("Email is already used with another account");
         }
 
         User createdUser = User.builder()
@@ -58,7 +60,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponse signin(@RequestBody LoginRequest loginRequest) {
+    public AuthResponse signin(@RequestBody LoginRequest loginRequest) throws InvalidCredentialsException, UserNotFoundException {
         String username = loginRequest.email();
         String password = loginRequest.password();
 
@@ -70,15 +72,15 @@ public class AuthController {
         return new AuthResponse(token, "Login Success", true);
     }
 
-    private Authentication authenticate(String username, String password) {
+    private Authentication authenticate(String username, String password) throws InvalidCredentialsException, UserNotFoundException {
         UserDetails userDetails = customUserDetails.loadUserByUsername(username);
 
         if (userDetails == null) {
-            throw new BadCredentialsException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
+            throw new InvalidCredentialsException("Invalid password");
         }
 
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

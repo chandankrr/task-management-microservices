@@ -3,6 +3,8 @@ package com.chandankrr.taskservice.service.impl;
 import com.chandankrr.taskservice.dto.TaskDto;
 import com.chandankrr.taskservice.entity.Task;
 import com.chandankrr.taskservice.entity.TaskStatus;
+import com.chandankrr.taskservice.exception.TaskNotFoundException;
+import com.chandankrr.taskservice.exception.UnauthorizedAccessException;
 import com.chandankrr.taskservice.repository.TaskRepository;
 import com.chandankrr.taskservice.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +22,15 @@ public class TaskServiceImpl implements TaskService {
     private final ModelMapper modelMapper;
 
     @Override
-    public Task getTaskById(Long id) throws Exception {
-        return taskRepository.findById(id).orElseThrow(() -> new Exception("Task not found with id: " + id));
+    public Task getTaskById(Long id) throws TaskNotFoundException {
+        return taskRepository.findById(id).orElseThrow(() ->
+                new TaskNotFoundException("Task not found with id: " + id));
     }
 
     @Override
-    public TaskDto createTask(Task task, String requesterRole) throws Exception {
+    public TaskDto createTask(Task task, String requesterRole) throws UnauthorizedAccessException {
         if (!requesterRole.equals("ROLE_ADMIN")) {
-            throw new Exception("Only admin can create task");
+            throw new UnauthorizedAccessException("Only admin can create task");
         }
 
         task.setStatus(TaskStatus.PENDING);
@@ -47,7 +50,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto updateTask(Long id, Task updatedTask, Long userId) throws Exception {
+    public TaskDto updateTask(Long id, Task updatedTask, Long userId) throws TaskNotFoundException {
         Task existingTask = getTaskById(id);
 
         if (updatedTask.getTitle() != null) {
@@ -75,14 +78,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTask(Long id) throws Exception {
+    public void deleteTask(Long id) throws TaskNotFoundException {
         Task task = getTaskById(id);
 
         taskRepository.delete(task);
     }
 
     @Override
-    public TaskDto assignedToUser(Long userId, Long taskId) throws Exception {
+    public TaskDto assignedToUser(Long userId, Long taskId) throws TaskNotFoundException {
         Task task = getTaskById(taskId);
         task.setAssignedUserId(userId);
         task.setStatus(TaskStatus.ASSIGNED);
@@ -101,7 +104,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto completeTask(Long taskId) throws Exception {
+    public TaskDto completeTask(Long taskId) throws TaskNotFoundException {
         Task task = getTaskById(taskId);
         task.setStatus(TaskStatus.DONE);
 

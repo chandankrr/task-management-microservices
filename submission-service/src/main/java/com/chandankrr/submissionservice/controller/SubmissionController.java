@@ -3,6 +3,7 @@ package com.chandankrr.submissionservice.controller;
 import com.chandankrr.submissionservice.dto.SubmissionDto;
 import com.chandankrr.submissionservice.dto.UserDto;
 import com.chandankrr.submissionservice.entity.Submission;
+import com.chandankrr.submissionservice.exception.SubmissionNotFoundException;
 import com.chandankrr.submissionservice.service.SubmissionService;
 import com.chandankrr.submissionservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class SubmissionController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public SubmissionDto getSubmissionById(@PathVariable Long id,
-                                                        @RequestHeader("Authorization") String jwt) throws Exception {
+                                                        @RequestHeader("Authorization") String jwt) throws SubmissionNotFoundException {
         userService.getUserProfile(jwt);
         Submission submission = submissionService.getTaskSubmissionById(id);
         return modelMapper.map(submission, SubmissionDto.class);
